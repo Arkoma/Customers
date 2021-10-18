@@ -15,8 +15,8 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web:2.5.5'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.5.5'
+    implementation 'com.h2database:h2:1.4.200'
     testImplementation 'org.springframework.boot:spring-boot-starter-test:2.5.5'
-    testImplementation 'com.h2database:h2:1.4.200'
     testImplementation (group: 'org.dbunit', name: 'dbunit', version: '2.7.0') {
         exclude group: 'junit', module: 'junit'
     }
