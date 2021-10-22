@@ -1,5 +1,7 @@
 package com.example.customers.service;
 
+import com.example.customers.constants.CustomerConstants;
+import com.example.customers.exception.NoSuchCustomerException;
 import com.example.customers.model.Customer;
 import com.example.customers.repository.CustomerRepository;
 import org.junit.jupiter.api.Test;
@@ -10,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,7 +32,7 @@ class CustomerServiceTest {
     final String email = "email@email.com";
 
     @Test
-    void checkBalanceReturnsCustomerBalanceInitializedToZero() {
+    void checkBalanceReturnsCustomerBalanceInitializedToZero() throws NoSuchCustomerException {
         Customer mockCustomer = mock(Customer.class);
         when(mockCustomerRepository.findByEmail(eq(email))).thenReturn(Optional.of(mockCustomer));
 
@@ -47,7 +48,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void checkBalanceReturnsCustomerBalanceWhenNotZero() {
+    void checkBalanceReturnsCustomerBalanceWhenNotZero() throws NoSuchCustomerException {
         final long balance = 55L;
         Customer customer = new Customer("First", "Last", email);
         customer.setBalance(balance);
@@ -61,6 +62,10 @@ class CustomerServiceTest {
     @Test
     void checkBalanceThrowsEntityNotFoundExceptionWhenNoCustomerFromRepositoryFindByEmail() {
         when(mockCustomerRepository.findByEmail(eq(email))).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> underTest.checkBalance(email));
+        final NoSuchCustomerException thrownNoSuchCustomerException = assertThrows(
+                NoSuchCustomerException.class,
+                () -> underTest.checkBalance(email));
+        assertEquals(CustomerConstants.NO_CUSTOMER_BY_EMAIL, thrownNoSuchCustomerException.getMessage());
+
     }
 }

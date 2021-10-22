@@ -1,10 +1,11 @@
 package com.example.customers.service;
 
+import com.example.customers.constants.CustomerConstants;
+import com.example.customers.exception.NoSuchCustomerException;
 import com.example.customers.model.Customer;
 import com.example.customers.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityNotFoundException;
 
 @Service
 public class CustomerService {
@@ -15,8 +16,10 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
-    public Long checkBalance(String email) {
-        final Customer customer = this.customerRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new);
+    public Long checkBalance(String email) throws NoSuchCustomerException {
+        final Customer customer = this.customerRepository.findByEmail(email).orElseThrow(() ->
+            new NoSuchCustomerException(CustomerConstants.NO_CUSTOMER_BY_EMAIL)
+        );
         return customer.getBalance();
     }
 }
