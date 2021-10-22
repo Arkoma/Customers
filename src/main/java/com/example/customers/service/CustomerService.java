@@ -22,4 +22,10 @@ public class CustomerService {
         );
         return customer.getBalance();
     }
+
+    public Long addCredits(String email, long addedBalance) {
+        final Customer customer = this.customerRepository.findByEmail(email).orElseThrow();
+        customer.setBalance(customer.getBalance() + addedBalance);
+        return this.customerRepository.save(customer).getBalance();
+    }
 }

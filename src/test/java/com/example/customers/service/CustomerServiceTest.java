@@ -29,6 +29,9 @@ class CustomerServiceTest {
     @Captor
     private ArgumentCaptor<String> stringArgumentCaptor;
 
+    @Captor
+    private ArgumentCaptor<Long> longArgumentCaptor;
+
     final String email = "email@email.com";
 
     @Test
@@ -66,6 +69,29 @@ class CustomerServiceTest {
                 NoSuchCustomerException.class,
                 () -> underTest.checkBalance(email));
         assertEquals(CustomerConstants.NO_CUSTOMER_BY_EMAIL, thrownNoSuchCustomerException.getMessage());
+    }
 
+    @Test
+    void addCreditsGetsTotalByUpdatingCustomerBalance() {
+        Customer mockCustomer = mock(Customer.class);
+        final long initialBalance = 55L;
+        final long addedBalance = 55L;
+        mockCustomer.setBalance(55L);
+        when(mockCustomerRepository.findByEmail(eq(email))).thenReturn(Optional.of(mockCustomer));
+        when(mockCustomerRepository.save(eq(mockCustomer))).thenReturn(mockCustomer);
+        when(mockCustomer.getBalance()).thenReturn(initialBalance, initialBalance + addedBalance);
+
+        Long updatedBalance = underTest.addCredits(email, addedBalance);
+
+        assertAll(() -> {
+            verify(mockCustomerRepository).findByEmail(stringArgumentCaptor.capture());
+            verify(mockCustomerRepository).save(eq(mockCustomer));
+            verify(mockCustomer, times(2)).getBalance();
+            verify(mockCustomer, times(2/*includes setter inside test*/))
+                    .setBalance(longArgumentCaptor.capture());
+            assertEquals(email, stringArgumentCaptor.getValue());
+            assertEquals(initialBalance + addedBalance, longArgumentCaptor.getValue());
+            assertEquals(110L, updatedBalance);
+        });
     }
 }
