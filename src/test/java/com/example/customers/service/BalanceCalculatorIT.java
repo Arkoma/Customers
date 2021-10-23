@@ -10,25 +10,25 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-class CustomerServiceIT {
+class BalanceCalculatorIT {
 
     @Autowired
     private ApplicationContext applicationContext;
 
     @Autowired
-    private CustomerService customerService;
+    private BalanceCalculator balanceCalculator;
 
     @Autowired
     private CustomerRepository customerRepository;
 
     @Test
     void customerServiceIsABean() {
-        assertTrue(applicationContext.containsBean("customerService"));
+        assertTrue(applicationContext.containsBean("balanceCalculator"));
     }
 
     @Test
     void customerServiceIncludesCustomerRepository() {
-        CustomerRepository injectedCustomerRepository = (CustomerRepository) ReflectionTestUtils.getField(customerService, "customerRepository");
+        CustomerRepository injectedCustomerRepository = (CustomerRepository) ReflectionTestUtils.getField(balanceCalculator, "customerRepository");
         assertSame(customerRepository, injectedCustomerRepository);
     }
 
