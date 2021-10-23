@@ -1,6 +1,8 @@
 package com.example.customers.service;
 
 import com.example.customers.constants.CustomerConstants;
+import com.example.customers.exception.CustomerInsufficientFundsException;
+import com.example.customers.exception.InsufficientCreditsAddedException;
 import com.example.customers.exception.NoSuchCustomerException;
 import com.example.customers.model.Customer;
 import com.example.customers.repository.CustomerRepository;
@@ -12,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,7 +66,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void checkBalanceThrowsEntityNotFoundExceptionWhenNoCustomerFromRepositoryFindByEmail() {
+    void checkBalanceThrowsNoSuchCustomerExceptionWhenNoCustomerFromRepositoryFoundByEmail() {
         when(mockCustomerRepository.findByEmail(eq(email))).thenReturn(Optional.empty());
         final NoSuchCustomerException thrownNoSuchCustomerException = assertThrows(
                 NoSuchCustomerException.class,
@@ -72,7 +75,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void addCreditsGetsTotalByUpdatingCustomerBalance() {
+    void addCreditsGetsTotalByUpdatingCustomerBalance() throws InsufficientCreditsAddedException, NoSuchCustomerException {
         Customer mockCustomer = mock(Customer.class);
         final long initialBalance = 55L;
         final long addedBalance = 55L;
@@ -93,5 +96,36 @@ class CustomerServiceTest {
             assertEquals(initialBalance + addedBalance, longArgumentCaptor.getValue());
             assertEquals(110L, updatedBalance);
         });
+    }
+
+    @Test
+    void addCreditsThrowsNoSuchCustomerExceptionWhenNoCustomerFromRepositoryFoundByEmail() {
+        when(mockCustomerRepository.findByEmail(eq(email))).thenReturn(Optional.empty());
+        final NoSuchCustomerException thrownNoSuchCustomerException = assertThrows(
+                NoSuchCustomerException.class,
+                () -> underTest.addCredits(email, 1L));
+        assertEquals(CustomerConstants.NO_CUSTOMER_BY_EMAIL, thrownNoSuchCustomerException.getMessage());
+    }
+
+    @Test
+    void addCreditsThrowsInsufficientCreditsAddedExceptionWhenNoOfCreditsBelowOne() {
+        when(mockCustomerRepository.findByEmail(email)).thenReturn(Optional.of(new Customer()));
+        final InsufficientCreditsAddedException thrownInsufficientCreditsAddedException = assertThrows(
+                InsufficientCreditsAddedException.class,
+                () -> underTest.addCredits(email, 0L)
+        );
+        assertEquals(CustomerConstants.INSUFFICIENT_CREDITS, thrownInsufficientCreditsAddedException.getMessage());
+    }
+
+    @Test
+    void withDrawCreditsThrowsCustomerInsufficientFundsExceptionWhenCreditsRequestedIsGreaterThanBalance() {
+        Customer customer = new Customer("First", "Last", email);
+        customer.setBalance(10L);
+        when(mockCustomerRepository.findByEmail(email)).thenReturn(Optional.of(customer));
+        final CustomerInsufficientFundsException thrownCustomerInsufficientFundsException = assertThrows(
+                CustomerInsufficientFundsException.class,
+                () -> underTest.withdrawCredits(email, 50L)
+        );
+        assertEquals(CustomerConstants.INSUFFICIENT_FUNDS, thrownCustomerInsufficientFundsException.getMessage());
     }
 }
