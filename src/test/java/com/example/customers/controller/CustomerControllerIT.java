@@ -52,7 +52,6 @@ class CustomerControllerIT {
                 .content(this.requestBody);
     }
 
-    //TODO: add validation for requestbody
     @Test
     void customerControllerIsABean() {
         assertTrue(this.wac.containsBean("customerController"));
