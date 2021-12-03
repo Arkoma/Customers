@@ -1,5 +1,6 @@
 package com.example.customers.controller;
 
+import com.example.customers.exception.NoSuchCustomerException;
 import com.example.customers.model.Customer;
 import com.example.customers.repository.CustomerRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,5 +25,12 @@ public class CustomerController {
         String lastName = customerRequestBody.getLastName();
         String email = customerRequestBody.getEmail();
         return this.customerRepository.save(new Customer(firstName, lastName, email));
+    }
+
+    @GetMapping("/get")
+    @ResponseBody
+    public Customer getCustomer(@RequestBody Customer customerRequestBody) throws NoSuchCustomerException {
+        final String email = customerRequestBody.getEmail();
+        return this.customerRepository.findByEmail(email).orElseThrow(NoSuchCustomerException::new);
     }
 }
